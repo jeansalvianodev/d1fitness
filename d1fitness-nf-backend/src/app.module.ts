@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VendasModule } from './modulos/vendas/vendas.module';
 import { NotasFiscaisModule } from './modulos/notas-fiscais/notas-fiscais.module';
+import { GeracaoDanfeModule } from './modulos/geracao-danfe/geracao-danfe.module';
+import { EmailModule } from './modulos/email/email.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { NotasFiscaisModule } from './modulos/notas-fiscais/notas-fiscais.module
     }),
     VendasModule,
     NotasFiscaisModule,
+    GeracaoDanfeModule,
+    EmailModule
   ],
 })
 export class AppModule {}
