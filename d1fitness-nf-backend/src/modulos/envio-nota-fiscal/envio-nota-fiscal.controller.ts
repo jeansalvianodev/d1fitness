@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EnvioNotaFiscalService } from './envio-nota-fiscal.service';
 import { EnviarNotaFiscalDto } from './dto/enviar-nota-fiscal.dto';
@@ -37,5 +37,18 @@ export class EnvioNotaFiscalController {
       dto.codigoNotaFiscal,
       dto.email,
     );
+  }
+
+  @Get('nota-fiscal/:codigo')
+  @ApiOperation({ 
+    summary: 'Buscar histórico de envios de uma nota fiscal',
+    description: 'Retorna todos os envios realizados para uma nota fiscal específica'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Histórico de envios encontrado'
+  })
+  buscarPorNotaFiscal(@Param('codigo') codigo: string) {
+    return this.service.buscarPorNotaFiscal(codigo);
   }
 }

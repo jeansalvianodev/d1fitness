@@ -67,4 +67,11 @@ export class EnvioNotaFiscalService {
       throw erro;
     }
   }
+
+  async buscarPorNotaFiscal(codigoNotaFiscal: string) {
+    return this.envioRepository.find({
+      where: { codigoNotaFiscal },
+      order: { dataEnvio: 'DESC' },
+    });
+  }
 }
