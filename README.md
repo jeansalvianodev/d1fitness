@@ -40,6 +40,32 @@ d1fitness/
 └── frontend/                 # Frontend (React)
 ```
 
+## ⚠️ Observação Importante sobre Banco de Dados (SSL)
+
+O backend foi preparado para funcionar tanto com **PostgreSQL local** quanto com **PostgreSQL remoto (cloud)**.
+
+- Bancos **locais** normalmente **não utilizam SSL**
+- Bancos **remotos** normalmente **exigem SSL**
+
+Por isso, existe a variável de ambiente:
+
+```
+DB_SSL=true | false
+```
+
+| Ambiente | DB_SSL |
+|--------|--------|
+| PostgreSQL local | false |
+| Supabase / Neon / Railway / Azure | true |
+
+Se configurado incorretamente, o seguinte erro pode ocorrer:
+
+```
+no pg_hba.conf entry for host "...", user "...", database "...", no encryption
+```
+
+Essa lógica já está tratada no código do backend (`app.module.ts` e `typeorm.config.ts`).
+
 ## 🔧 Setup Completo
 
 ### 1. Backend
