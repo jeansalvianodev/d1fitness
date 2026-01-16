@@ -1,11 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
-import PdfPrinter from 'pdfmake';
+
+const pdfMake = require('pdfmake/build/pdfmake');
+const vfsFonts = require('pdfmake/build/vfs_fonts');
+
+pdfMake.vfs = vfsFonts.pdfMake ? vfsFonts.pdfMake.vfs : vfsFonts.vfs;
 
 @Injectable()
 export class GeracaoDanfeService {
   async gerar(xml: string): Promise<Buffer> {
-    let dados;
+    let dados: any;
 
     try {
       dados = await parseStringPromise(xml, { explicitArray: false });
@@ -13,8 +17,7 @@ export class GeracaoDanfeService {
       throw new BadRequestException('XML inválido');
     }
 
-    const infNFe = dados?.nfeProc?.NFe?.infNFe;
-
+    const infNFe = dados?.nfeProc?.NFe?.infNFe || dados?.NFe?.infNFe;
     if (!infNFe) {
       throw new BadRequestException('Estrutura de NF inválida');
     }
@@ -23,99 +26,86 @@ export class GeracaoDanfeService {
     const emit = infNFe.emit;
     const dest = infNFe.dest;
     const total = infNFe.total?.ICMSTot;
-    const produtos = Array.isArray(infNFe.det)
-      ? infNFe.det
-      : [infNFe.det];
 
-    const itens = produtos.map((item) => ({
-      descricao: item.prod.xProd,
-      quantidade: item.prod.qCom,
-      valorUnitario: item.prod.vUnCom,
-      valorTotal: item.prod.vProd,
-    }));
+    const itens = infNFe.det
+      ? (Array.isArray(infNFe.det) ? infNFe.det : [infNFe.det]).map((item) => ({
+          descricao: item.prod?.xProd ?? '-',
+          quantidade: item.prod?.qCom ?? '-',
+          valorUnitario: item.prod?.vUnCom ?? '-',
+          valorTotal: item.prod?.vProd ?? '-',
+        }))
+      : [];
 
-    const fonts = {
-      Helvetica: {
-        normal: 'Helvetica',
-        bold: 'Helvetica-Bold',
-      },
-    };
-
-    const printer = new PdfPrinter(fonts);
-
-    const docDefinition = {
+    const docDefinition: any = {
       pageSize: 'A4',
       pageMargins: [40, 60, 40, 60],
       content: [
         { text: 'DANFE', style: 'titulo', alignment: 'center' },
         {
-          text: `NF-e Nº ${ide.nNF}  Série ${ide.serie}`,
+          text: `NF-e Nº ${ide.nNF}${ide.serie ? '  Série ' + ide.serie : ''}`,
           style: 'subtitulo',
           alignment: 'center',
         },
-        { text: `Chave de Acesso: ${infNFe.$.Id.replace('NFe', '')}` },
+        {
+          text: infNFe.$?.Id
+            ? `Chave de Acesso: ${infNFe.$.Id.replace('NFe', '')}`
+            : '',
+        },
         { text: ' ' },
 
         { text: 'Emitente', style: 'secao' },
-        { text: emit.xNome },
-        { text: emit.enderEmit?.xLgr },
+        { text: emit.xNome ?? '-' },
+        { text: emit.enderEmit?.xLgr ?? '-' },
 
         { text: ' ' },
         { text: 'Destinatário', style: 'secao' },
-        { text: dest.xNome },
-        { text: dest.enderDest?.xLgr },
+        { text: dest.xNome ?? '-' },
+        { text: dest.enderDest?.xLgr ?? '-' },
 
-        { text: ' ' },
-        { text: 'Produtos', style: 'secao' },
-        {
-          table: {
-            widths: ['*', 60, 80, 80],
-            body: [
-              ['Descrição', 'Qtd', 'Vlr Unit.', 'Vlr Total'],
-              ...itens.map((i) => [
-                i.descricao,
-                i.quantidade,
-                `R$ ${i.valorUnitario}`,
-                `R$ ${i.valorTotal}`,
-              ]),
-            ],
-          },
-        },
+        ...(itens.length
+          ? [
+              { text: ' ', margin: [0, 5] },
+              { text: 'Produtos', style: 'secao' },
+              {
+                table: {
+                  widths: ['*', 60, 80, 80],
+                  body: [
+                    ['Descrição', 'Qtd', 'Vlr Unit.', 'Vlr Total'],
+                    ...itens.map((i) => [
+                      i.descricao,
+                      i.quantidade,
+                      `R$ ${i.valorUnitario}`,
+                      `R$ ${i.valorTotal}`,
+                    ]),
+                  ],
+                },
+              },
+            ]
+          : []),
 
-        { text: ' ' },
+        { text: ' ', margin: [0, 5] },
         { text: 'Totais', style: 'secao' },
-        { text: `Valor Total da Nota: R$ ${total?.vNF}` },
-        { text: `Data de Emissão: ${ide.dhEmi}` },
+        { text: `Valor Total da Nota: R$ ${total?.vNF ?? '-'}` },
+        { text: `Data de Emissão: ${ide.dhEmi ?? '-'}` },
       ],
       styles: {
-        titulo: {
-          fontSize: 18,
-          bold: true,
-        },
-        subtitulo: {
-          fontSize: 12,
-          margin: [0, 5, 0, 10],
-        },
-        secao: {
-          fontSize: 12,
-          bold: true,
-          margin: [0, 10, 0, 5],
-        },
+        titulo: { fontSize: 18, bold: true },
+        subtitulo: { fontSize: 12, margin: [0, 5, 0, 10] },
+        secao: { fontSize: 12, bold: true, margin: [0, 10, 0, 5] },
       },
-      defaultStyle: {
-        font: 'Helvetica',
-        fontSize: 9,
-      },
+      defaultStyle: { fontSize: 9 },
     };
 
-    return new Promise((resolve) => {
-      const pdfDoc = printer.createPdfKitDocument(docDefinition);
-      const chunks: Buffer[] = [];
-
-      pdfDoc.on('data', (chunk) => chunks.push(chunk));
-      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
-
-      pdfDoc.end();
+    return new Promise<Buffer>((resolve, reject) => {
+      try {
+        const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+        pdfDocGenerator.getBuffer((buffer: Buffer) =>
+          resolve(Buffer.from(buffer)),
+        );
+      } catch (err) {
+        console.error('ERRO PDFMAKE >>>', err);
+        reject(new BadRequestException('Erro ao gerar PDF'));
+      }
     });
   }
 }
