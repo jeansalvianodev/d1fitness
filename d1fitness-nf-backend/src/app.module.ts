@@ -5,6 +5,8 @@ import { VendasModule } from './modulos/vendas/vendas.module';
 import { NotasFiscaisModule } from './modulos/notas-fiscais/notas-fiscais.module';
 import { GeracaoDanfeModule } from './modulos/geracao-danfe/geracao-danfe.module';
 import { EmailModule } from './modulos/email/email.module';
+import { EnvioNotaFiscalModule } from './modulos/envio-nota-fiscal/envio-nota-fiscal.module';
+
 
 @Module({
   imports: [
@@ -28,7 +30,8 @@ import { EmailModule } from './modulos/email/email.module';
     VendasModule,
     NotasFiscaisModule,
     GeracaoDanfeModule,
-    EmailModule
+    EmailModule,
+    EnvioNotaFiscalModule
   ],
 })
 export class AppModule {}
