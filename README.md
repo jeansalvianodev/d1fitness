@@ -68,7 +68,22 @@ Essa lógica já está tratada no código do backend (`app.module.ts` e `typeorm
 
 ## 🔧 Setup Completo
 
-### 1. Backend
+### 1. API Mock
+
+```bash
+# Navegar para a pasta da API mock
+cd d1fitness-api-mock
+
+# Instalar dependências
+npm install
+
+# Iniciar o servidor mock (não requer configuração)
+npm run start:dev
+```
+
+A API mock estará disponível em `http://localhost:3000` e fornece dados mockados de vendas e notas fiscais.
+
+### 2. Backend
 
 ```bash
 # Navegar para a pasta do backend
@@ -90,7 +105,7 @@ npm run start:dev
 
 O backend estará disponível em `http://localhost:3001`
 
-### 2. Frontend
+### 3. Frontend
 
 ```bash
 # Navegar para a pasta do frontend
@@ -108,21 +123,6 @@ npm run dev
 ```
 
 O frontend estará disponível em `http://localhost:5173`
-
-### 3. API Mock
-
-```bash
-# Navegar para a pasta da API mock
-cd d1fitness-api-mock
-
-# Instalar dependências
-npm install
-
-# Iniciar o servidor mock (não requer configuração)
-npm run start:dev
-```
-
-A API mock estará disponível em `http://localhost:3000` e fornece dados mockados de vendas e notas fiscais.
 
 ## 📱 Funcionalidades
 
