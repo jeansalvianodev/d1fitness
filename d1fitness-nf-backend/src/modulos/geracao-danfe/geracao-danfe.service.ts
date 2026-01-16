@@ -86,7 +86,15 @@ export class GeracaoDanfeService {
         { text: ' ', margin: [0, 5] },
         { text: 'Totais', style: 'secao' },
         { text: `Valor Total da Nota: R$ ${total?.vNF ?? '-'}` },
-        { text: `Data de Emissão: ${ide.dhEmi ?? '-'}` },
+        { 
+          text: `Data de Emissão: ${ide.dhEmi ? new Date(ide.dhEmi).toLocaleString('pt-BR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }) : '-'}` 
+        },
       ],
       styles: {
         titulo: { fontSize: 18, bold: true },
