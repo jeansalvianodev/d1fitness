@@ -1,98 +1,392 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# D1FITNESS - Sistema de Envio de Notas Fiscais
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend da aplicação de automação de envio de Notas Fiscais por email, desenvolvido como teste técnico para D1FITNESS.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Sobre o Projeto
 
-## Description
+Este sistema automatiza o processo de envio de Notas Fiscais eletrônicas (NF-e) por email. Ele consome APIs de vendas e notas fiscais, processa arquivos XML, gera PDFs no formato DANFE e envia tudo por email com anexos.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**Funcionalidades principais:**
+- Integração com API de vendas para listar vendas realizadas
+- Busca de notas fiscais por código com validação de XML
+- Geração de DANFE (PDF) a partir do XML da NF-e
+- Envio de email com XML e PDF em anexo
+- Rastreamento de envios com registro em banco de dados
 
-## Project setup
+## Tecnologias Utilizadas
 
-```bash
-$ npm install
-```
+- **NestJS** - Framework Node.js para construção de APIs robustas
+- **TypeORM** - ORM para gerenciamento do banco de dados
+- **PostgreSQL** - Banco de dados relacional
+- **Resend** - Serviço de envio de emails transacionais
+- **pdfmake** - Geração de PDFs
+- **xml2js** - Parser e validação de XML
+- **Swagger/OpenAPI** - Documentação interativa da API
 
-## Compile and run the project
+## Pré-requisitos
 
-```bash
-# development
-$ npm run start
+Antes de começar, você vai precisar ter instalado em sua máquina:
 
-# watch mode
-$ npm run start:dev
+- [Node.js](https://nodejs.org/) (versão 18 ou superior)
+- [PostgreSQL](https://www.postgresql.org/) (versão 14 ou superior)
+- [Git](https://git-scm.com/)
+- Uma conta no [Resend](https://resend.com) para envio de emails
 
-# production mode
-$ npm run start:prod
-```
+## Configuração do Banco de Dados
 
-## Run tests
+> **⚠️ IMPORTANTE - SEGURANÇA:**  
+> Este projeto utiliza um banco PostgreSQL remoto **apenas para fins de demonstração**.  
+> Por questões de segurança, **não incluí credenciais reais** no repositório.  
+> Para testar o projeto, você **não precisa usar meu banco remoto**.  
+> Basta criar seu próprio banco local ou remoto e configurar o arquivo `.env` com suas credenciais.  
+> Use os placeholders do `.env.example` para substituir `DB_USER`, `DB_PASS`, `DB_HOST` e `DB_NAME`.  
+> Isso garante que você terá um ambiente totalmente funcional sem acessar dados de terceiros.
+
+### Opção 1: Banco Local (Recomendado para testes)
 
 ```bash
-# unit tests
-$ npm run test
+# Criar um banco local no PostgreSQL
+createdb d1fitness_test
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Ou via psql
+psql -U postgres
+CREATE DATABASE d1fitness_test;
 ```
 
-## Deployment
+### Opção 2: Banco Remoto
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Você pode usar qualquer serviço de PostgreSQL:
+- [Supabase](https://supabase.com) (gratuito)
+- [Neon](https://neon.tech) (gratuito)
+- [Railway](https://railway.app)
+- Azure Database for PostgreSQL
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Dica:** Configure o firewall para permitir seu IP ou use `0.0.0.0/0` apenas em ambientes de teste.
+
+## Instalação e Setup
+
+### 1. Clone o repositório
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+git clone <url-do-repositorio>
+cd d1fitness-nf-backend
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 2. Instale as dependências
 
-## Resources
+```bash
+npm install
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 3. Configure as variáveis de ambiente
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Copie o arquivo `.env.example` para `.env`:
 
-## Support
+```bash
+cp .env.example .env
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Edite o arquivo `.env` com suas credenciais:
 
-## Stay in touch
+```env
+# Porta do servidor
+PORT=3001
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Configurações do Banco de Dados PostgreSQL
+DB_HOST=localhost              # ou seu servidor remoto
+DB_PORT=5432
+DB_USER=postgres               # seu usuário
+DB_PASS=sua_senha_aqui         # sua senha
+DB_NAME=d1fitness_test         # nome do seu banco
 
-## License
+# Configuração do Resend (Serviço de Email)
+# Obtenha sua chave em: https://resend.com/api-keys
+RESEND_API_KEY=re_sua_chave_api_aqui
+EMAIL_FROM=Seu Nome <seu-email@seudominio.com>
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# URLs da API Mock (para desenvolvimento)
+API_VENDAS_URL=http://localhost:3000/vendas
+API_NOTAS_FISCAIS_URL=http://localhost:3000/notas-fiscais
+```
+
+> **Nota sobre o Resend:**  
+> Em ambiente de teste com domínio `resend.dev`, você só pode enviar emails para o endereço que criou a conta.  
+> Para enviar para outros destinatários, configure um domínio verificado em [resend.com/domains](https://resend.com/domains).
+
+### 4. Execute as migrations
+
+As migrations criam as tabelas necessárias no banco de dados:
+
+```bash
+npm run migration:run
+```
+
+Isso criará a tabela `envios_notas_fiscais` com os seguintes campos:
+- `id` (UUID)
+- `codigoNotaFiscal` (string)
+- `emailDestino` (string)
+- `status` (PROCESSANDO | SUCESSO | ERRO)
+- `mensagemErro` (string, nullable)
+- `dataEnvio` (timestamp)
+
+### 5. Execute a API Mock
+
+A API mock simula os endpoints de vendas e notas fiscais. Abra um **novo terminal** e execute:
+
+```bash
+cd ../d1fitness-api-mock
+npm install
+npm run start:dev
+```
+
+A API mock estará disponível em `http://localhost:3000`
+
+### 6. Execute o backend
+
+No terminal original, execute:
+
+```bash
+npm run start:dev
+```
+
+O backend estará disponível em `http://localhost:3001`
+
+## Endpoints Disponíveis
+
+### 1. Listar Vendas
+
+```http
+GET http://localhost:3001/vendas
+```
+
+**Resposta:**
+```json
+[
+  {
+    "id": "1",
+    "data": "2026-01-15",
+    "cliente": "Cliente Teste",
+    "valor": 199.90,
+    "codigoNotaFiscal": "NF001"
+  }
+]
+```
+
+### 2. Buscar Nota Fiscal
+
+```http
+GET http://localhost:3001/notas-fiscais/NF001
+```
+
+**Resposta:**
+```json
+{
+  "codigoNotaFiscal": "NF001",
+  "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>..."
+}
+```
+
+### 3. Enviar Nota Fiscal por Email
+
+```http
+POST http://localhost:3001/envios-nota-fiscal
+Content-Type: application/json
+
+{
+  "codigoNotaFiscal": "NF001",
+  "email": "destinatario@email.com"
+}
+```
+
+**Resposta de sucesso:**
+```json
+{
+  "mensagem": "Nota Fiscal enviada com sucesso"
+}
+```
+
+**Resposta de erro (email não autorizado):**
+```json
+{
+  "message": "Email não autorizado. Em ambiente de teste do Resend, você só pode enviar para seu-email@exemplo.com. Para enviar a outros destinatários, verifique um domínio em resend.com/domains.",
+  "error": "Internal Server Error",
+  "statusCode": 500
+}
+```
+
+## Documentação Interativa (Swagger)
+
+Acesse a documentação interativa da API em:
+
+```
+http://localhost:3001/docs
+```
+
+Você pode testar todos os endpoints diretamente pelo navegador.
+
+## Estrutura do Projeto
+
+```
+src/
+├── compartilhado/          # Módulos compartilhados
+│   ├── excecoes/           # Tratamento de exceções customizadas
+│   ├── http/               # Utilitários HTTP
+│   └── xml/                # Utilitários para processamento de XML
+├── config/                 # Configurações da aplicação
+│   ├── banco-dados.config.ts
+│   └── email.config.ts
+├── migrations/             # Migrations do banco de dados
+│   └── *-CreateEnvioNotaFiscalTable.ts
+├── modulos/                # Módulos da aplicação
+│   ├── email/              # Serviço de envio de emails
+│   ├── envio-nota-fiscal/  # Lógica de envio de NF
+│   ├── geracao-danfe/      # Geração de PDF (DANFE)
+│   ├── notas-fiscais/      # Integração com API de NF
+│   └── vendas/             # Integração com API de vendas
+├── app.module.ts
+└── main.ts
+```
+
+## Comandos Úteis
+
+```bash
+# Desenvolvimento com hot-reload
+npm run start:dev
+
+# Build para produção
+npm run build
+
+# Executar em produção
+npm run start:prod
+
+# Gerar nova migration
+npm run migration:generate -- src/migrations/NomeDaMigration
+
+# Executar migrations
+npm run migration:run
+
+# Reverter última migration
+npm run migration:revert
+
+# Formatar código
+npm run format
+
+# Lint
+npm run lint
+```
+
+## Testando a Aplicação
+
+### Cenário completo de teste:
+
+1. **Inicie a API mock** (terminal 1):
+   ```bash
+   cd d1fitness-api-mock
+   npm run start:dev
+   ```
+
+2. **Inicie o backend** (terminal 2):
+   ```bash
+   cd d1fitness-nf-backend
+   npm run start:dev
+   ```
+
+3. **Liste as vendas disponíveis:**
+   ```bash
+   curl http://localhost:3001/vendas
+   ```
+
+4. **Busque uma nota fiscal:**
+   ```bash
+   curl http://localhost:3001/notas-fiscais/NF001
+   ```
+
+5. **Envie a nota fiscal por email** (use o email da sua conta Resend em teste):
+   ```bash
+   curl -X POST http://localhost:3001/envios-nota-fiscal \
+     -H "Content-Type: application/json" \
+     -d '{"codigoNotaFiscal": "NF001", "email": "seu-email@exemplo.com"}'
+   ```
+
+6. **Verifique seu email** - Você receberá:
+   - XML da nota fiscal em anexo
+   - PDF (DANFE) em anexo
+
+## Logs e Rastreabilidade
+
+O sistema registra detalhadamente:
+- Tentativas de envio de email
+- Erros específicos (domínio não verificado, email inválido, etc.)
+- ID do registro no banco para rastreamento
+- Status de cada envio (PROCESSANDO → SUCESSO/ERRO)
+
+Exemplo de log no console:
+```
+Email enviado com sucesso: { destinatario: 'teste@email.com', emailId: 'abc123' }
+```
+
+Ou em caso de erro:
+```
+Erro ao enviar email: {
+  destinatario: 'teste@email.com',
+  erro: 'You can only send testing emails to...',
+  registroId: 'uuid-do-registro'
+}
+```
+
+## Tratamento de Erros
+
+O sistema possui tratamento robusto de erros:
+
+- **XML inválido** → HTTP 400 com mensagem clara
+- **Nota fiscal não encontrada** → HTTP 404
+- **Email não autorizado (Resend)** → HTTP 500 com instrução de como resolver
+- **Erro ao gerar PDF** → HTTP 500 com detalhes no log
+- **Falha de conexão com API externa** → HTTP apropriado com contexto
+
+Todos os erros são registrados no banco na tabela `envios_notas_fiscais` para auditoria.
+
+## Boas Práticas Implementadas
+
+- ✅ Separação de responsabilidades (módulos independentes)
+- ✅ Validação de entrada com class-validator
+- ✅ Logging estruturado para debugging
+- ✅ Mensagens de erro amigáveis ao usuário
+- ✅ Rastreabilidade de operações (IDs únicos)
+- ✅ Migrations versionadas para banco de dados
+- ✅ Variáveis de ambiente para configurações sensíveis
+- ✅ Documentação automática com Swagger
+- ✅ Tratamento de erros em múltiplas camadas
+
+## Troubleshooting
+
+### Erro: "ECONNREFUSED" ao conectar no banco
+
+Verifique se:
+- O PostgreSQL está rodando
+- As credenciais no `.env` estão corretas
+- O firewall permite conexão na porta 5432
+
+### Erro: "API_VENDAS_URL não configurada"
+
+Configure as URLs da API mock no arquivo `.env`
+
+### Email não é enviado (ambiente de teste Resend)
+
+Em ambiente de teste com `@resend.dev`, você só pode enviar para o email que criou a conta.  
+Solução: Use o mesmo email ou configure um domínio verificado.
+
+### Migration falha
+
+```bash
+# Verifique se o banco existe e está acessível
+npm run typeorm -- query "SELECT NOW()"
+
+# Se necessário, recrie o banco
+npm run migration:revert
+npm run migration:run
+```
+
+## Licença
+
+Este projeto foi desenvolvido como teste técnico para D1FITNESS.
