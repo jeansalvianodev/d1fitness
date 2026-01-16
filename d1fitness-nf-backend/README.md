@@ -42,6 +42,34 @@ Antes de começar, você vai precisar ter instalado em sua máquina:
 > Use os placeholders do `.env.example` para substituir `DB_USER`, `DB_PASS`, `DB_HOST` e `DB_NAME`.  
 > Isso garante que você terá um ambiente totalmente funcional sem acessar dados de terceiros.
 
+### ⚠️ Observação Importante sobre SSL (PostgreSQL)
+
+Este projeto foi ajustado para funcionar tanto com **PostgreSQL local** quanto com **PostgreSQL remoto (cloud)**.
+
+- Bancos **locais** normalmente **não utilizam SSL**
+- Bancos **remotos** normalmente **exigem SSL**
+
+Para suportar ambos os cenários, foi criada a variável de ambiente:
+
+```env
+DB_SSL=true | false
+```
+
+#### Como configurar corretamente:
+
+| Ambiente | DB_SSL |
+|--------|--------|
+| PostgreSQL local | false |
+| Supabase / Neon / Railway / Azure | true |
+
+Se `DB_SSL` estiver configurado incorretamente, o seguinte erro pode ocorrer:
+
+```
+no pg_hba.conf entry for host "...", user "...", database "...", no encryption
+```
+
+Esse comportamento é esperado e indica que o banco remoto exige conexão criptografada.
+
 ### Opção 1: Banco Local (Recomendado para testes)
 
 ```bash
@@ -96,8 +124,13 @@ PORT=3001
 DB_HOST=localhost              # ou seu servidor remoto
 DB_PORT=5432
 DB_USER=postgres               # seu usuário
-DB_PASS=sua_senha_aqui         # sua senha
+DB_PASS="sua_senha_aqui"       # sua senha (use aspas se houver caracteres especiais como #)
 DB_NAME=d1fitness_test         # nome do seu banco
+
+# IMPORTANTE:
+# false -> banco local
+# true  -> banco remoto (cloud)
+DB_SSL=false
 
 # Configuração do Resend (Serviço de Email)
 # Obtenha sua chave em: https://resend.com/api-keys
@@ -113,7 +146,29 @@ API_NOTAS_FISCAIS_URL=http://localhost:3000/notas-fiscais
 > Em ambiente de teste com domínio `resend.dev`, você só pode enviar emails para o endereço que criou a conta.  
 > Para enviar para outros destinatários, configure um domínio verificado em [resend.com/domains](https://resend.com/domains).
 
-### 4. Execute as migrations
+## Ordem correta de inicialização (IMPORTANTE)
+
+A ordem correta para iniciar o ambiente local é:
+
+1. **API Mock**
+2. **Backend**
+3. **Frontend**
+
+Isso evita erros por dependência de serviços (o backend depende da mock para consumir vendas e notas fiscais).
+
+### 4. Execute a API Mock
+
+A API mock simula os endpoints de vendas e notas fiscais. Abra um **novo terminal** e execute:
+
+```bash
+cd ../d1fitness-api-mock
+npm install
+npm run start:dev
+```
+
+A API mock estará disponível em `http://localhost:3000`
+
+### 5. Execute as migrations
 
 As migrations criam as tabelas necessárias no banco de dados:
 
@@ -129,27 +184,25 @@ Isso criará a tabela `envios_notas_fiscais` com os seguintes campos:
 - `mensagemErro` (string, nullable)
 - `dataEnvio` (timestamp)
 
-### 5. Execute a API Mock
-
-A API mock simula os endpoints de vendas e notas fiscais. Abra um **novo terminal** e execute:
-
-```bash
-cd ../d1fitness-api-mock
-npm install
-npm run start:dev
-```
-
-A API mock estará disponível em `http://localhost:3000`
-
 ### 6. Execute o backend
 
-No terminal original, execute:
+No terminal do backend, execute:
 
 ```bash
 npm run start:dev
 ```
 
 O backend estará disponível em `http://localhost:3001`
+
+### 7. Execute o frontend
+
+No terminal do frontend, execute:
+
+```bash
+cd ../d1fitness-frontend
+npm install
+npm run start
+```
 
 ## Endpoints Disponíveis
 
@@ -288,27 +341,34 @@ npm run lint
 2. **Inicie o backend** (terminal 2):
    ```bash
    cd d1fitness-nf-backend
+   npm run migration:run
    npm run start:dev
    ```
 
-3. **Liste as vendas disponíveis:**
+3. **Inicie o frontend** (terminal 3):
+   ```bash
+   cd d1fitness-frontend
+   npm run start
+   ```
+
+4. **Liste as vendas disponíveis:**
    ```bash
    curl http://localhost:3001/vendas
    ```
 
-4. **Busque uma nota fiscal:**
+5. **Busque uma nota fiscal:**
    ```bash
    curl http://localhost:3001/notas-fiscais/NF001
    ```
 
-5. **Envie a nota fiscal por email** (use o email da sua conta Resend em teste):
+6. **Envie a nota fiscal por email** (use o email da sua conta Resend em teste):
    ```bash
    curl -X POST http://localhost:3001/envios-nota-fiscal \
      -H "Content-Type: application/json" \
      -d '{"codigoNotaFiscal": "NF001", "email": "seu-email@exemplo.com"}'
    ```
 
-6. **Verifique seu email** - Você receberá:
+7. **Verifique seu email** - Você receberá:
    - XML da nota fiscal em anexo
    - PDF (DANFE) em anexo
 
@@ -375,6 +435,12 @@ Configure as URLs da API mock no arquivo `.env`
 
 Em ambiente de teste com `@resend.dev`, você só pode enviar para o email que criou a conta.  
 Solução: Use o mesmo email ou configure um domínio verificado.
+
+### Erro: "no pg_hba.conf entry for host ..., no encryption"
+
+Esse erro geralmente acontece quando o banco remoto exige SSL e o `DB_SSL` está configurado como `false`.
+
+**Solução:** defina `DB_SSL=true` no `.env` e reinicie o backend.
 
 ### Migration falha
 
