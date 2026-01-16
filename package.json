@@ -1,0 +1,23 @@
+{
+  "name": "d1fitness-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Gestão de Notas Fiscais - D1FITNESS",
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../d1fitness-nf-backend && npm install && cd ../d1fitness-api-mock && npm install",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd d1fitness-nf-backend && npm run start:dev",
+    "dev:mock": "cd d1fitness-api-mock && npm run start:dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd d1fitness-nf-backend && npm run build"
+  },
+  "keywords": [
+    "d1fitness",
+    "notas-fiscais",
+    "nfe",
+    "react",
+    "nestjs"
+  ],
+  "author": "",
+  "license": "ISC"
+}
