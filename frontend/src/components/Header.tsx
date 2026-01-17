@@ -1,11 +1,11 @@
 import { AppBar, Toolbar, Typography, Box } from '@mui/material';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import logo from '../assets/d1fitness_logo.jpg';
 
 export const Header = () => {
   return (
     <AppBar position="static" elevation={2}>
       <Toolbar>
-        <ReceiptLongIcon sx={{ mr: 2, fontSize: 32 }} />
+        <img src={logo} alt="D1FITNESS" style={{ marginRight: 16, height: 40 }} />
         <Box>
           <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
             D1FITNESS
