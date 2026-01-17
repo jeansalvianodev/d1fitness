@@ -2,20 +2,6 @@
 
 Sistema completo para gerenciamento e envio de notas fiscais, desenvolvido como teste técnico para D1FITNESS.
 
-### Fallback Automático
-
-O sistema pode fazer fallback automático para o mock se a API real falhar:
-
-```env
-# No arquivo d1fitness-nf-backend/.env
-SALES_FALLBACK_TO_MOCK=true   # Fallback automático em caso de erro
-SALES_FALLBACK_TO_MOCK=false  # Produção: erros são propagados
-```
-
-**Recomendações:**
-- **Desenvolvimento**: `true` (resiliente a falhas da API)
-- **Produção**: `false` (erros visíveis para correção)
-
 ## 📋 Visão Geral
 
 Este projeto consiste em um sistema full-stack com:
@@ -80,6 +66,7 @@ no pg_hba.conf entry for host "...", user "...", database "...", no encryption
 ```
 
 Essa lógica já está tratada no código do backend (`app.module.ts` e `typeorm.config.ts`).
+
 
 ## 🔧 Setup Completo
 
@@ -155,6 +142,21 @@ npm run dev
 ```
 
 O frontend estará disponível em `http://localhost:5173`
+
+### Fallback Automático
+
+O sistema pode fazer fallback automático para o mock se a API real falhar:
+
+```env
+# No arquivo d1fitness-nf-backend/.env
+SALES_FALLBACK_TO_MOCK=true   # Fallback automático em caso de erro
+SALES_FALLBACK_TO_MOCK=false  # Produção: erros são propagados
+```
+
+**Recomendações:**
+- **Desenvolvimento**: `true` (resiliente a falhas da API)
+- **Produção**: `false` (erros visíveis para correção)
+
 
 ## 📱 Funcionalidades
 
