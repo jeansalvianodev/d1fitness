@@ -37,17 +37,14 @@ export const VendasList = () => {
 
   const handleEnviarNF = async (venda: Venda) => {
     setVendaSelecionada(venda);
-    console.log('Venda recebida:', venda);
 
     const codigoNF = venda.codigoNotaFiscal;
-    console.log('Código NF extraído:', codigoNF);
     if (!codigoNF) {
       toast.error('Código da nota fiscal não encontrado');
       return;
     }
 
     const notaFiscal = await buscarNotaFiscal(codigoNF);
-    console.log('Nota fiscal retornada:', notaFiscal);
     if (!notaFiscal) {
       toast.error('Nota fiscal não encontrada para esta venda');
       return;
@@ -60,12 +57,9 @@ export const VendasList = () => {
   const handleConfirmarEnvio = async (email: string) => {
     if (!notaFiscalSelecionada || !vendaSelecionada) return;
 
-    console.log('Nota fiscal selecionada para envio:', notaFiscalSelecionada);
-
     const codigoNF = notaFiscalSelecionada.codigoNotaFiscal;
     if (!codigoNF) {
       toast.error('Código da nota fiscal não encontrado');
-      console.error('Nota fiscal sem código:', notaFiscalSelecionada);
       return;
     }
 
@@ -102,10 +96,8 @@ export const VendasList = () => {
 
   const handleVerHistorico = async (venda: Venda) => {
     setVendaSelecionada(venda);
-    console.log('Venda recebida no histórico:', venda);
 
     const codigoNF = venda.codigoNotaFiscal;
-    console.log('Código NF extraído:', codigoNF);
     if (!codigoNF) {
       toast.error('Código da nota fiscal não encontrado');
       return;
@@ -208,18 +200,15 @@ export const VendasList = () => {
             gap: 3,
           }}
         >
-          {vendasFiltradas.map((venda) => {
-            const key = venda.codigo?.toString() || venda.codigoVenda || Math.random().toString();
-            return (
+          {vendasFiltradas.map((venda, index) => (
               <VendaCard
-                key={key}
+                key={`${venda.codigo || venda.codigoVenda}-${index}`}
                 venda={venda}
                 onEnviarNF={handleEnviarNF}
                 onVerHistorico={handleVerHistorico}
                 loading={enviando}
               />
-            );
-          })}
+          ))}
         </Box>
       )}
 
