@@ -1,34 +1,43 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
+import { RepositorioVendas } from '../vendas/repositories/sales.repository';
 
 @Injectable()
 export class NotasFiscaisService {
+  constructor(private readonly repositorioVendas: RepositorioVendas) {}
+
   async buscarPorCodigo(codigo: string) {
-    const url = process.env.API_NOTAS_FISCAIS_URL;
-
-    if (!url) {
-      throw new Error('API_NOTAS_FISCAIS_URL não configurada');
-    }
-
-    let response;
+    let notaFiscal;
 
     try {
-      response = await axios.get(`${url}/${codigo}`);
-    } catch {
+      const resultado = await this.repositorioVendas.obterNotaFiscal(codigo);
+      notaFiscal = Array.isArray(resultado) ? resultado[0] : resultado;
+      
+      if (!notaFiscal) {
+        throw new NotFoundException('Nota fiscal não encontrada');
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new NotFoundException('Nota fiscal não encontrada');
     }
 
-    if (!response.data?.xml) {
-      throw new BadRequestException('Nota fiscal sem XML');
+    const xml = notaFiscal.xml || notaFiscal.xmlNfe;
+    
+    if (!xml) {
+      throw new BadRequestException('XML não disponível na API D1FITNESS para esta nota fiscal');
     }
-
+    
     try {
-      await parseStringPromise(response.data.xml);
-    } catch {
-      throw new BadRequestException('XML inválido');
+      await parseStringPromise(xml);
+    } catch (erro) {
+      throw new BadRequestException(`XML inválido: ${erro.message}`);
     }
 
-    return response.data;
+    return {
+      ...notaFiscal,
+      xml,
+    };
   }
 }
