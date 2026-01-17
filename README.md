@@ -2,13 +2,40 @@
 
 Sistema completo para gerenciamento e envio de notas fiscais, desenvolvido como teste técnico para D1FITNESS.
 
+## 🎯 Integração com API Real D1FITNESS
+
+✅ Sistema suporta integração com a API real do D1FITNESS, mantendo o mock funcionando.
+
+### Alternância entre Mock e API Real
+
+**Modo Mock (padrão):**
+```bash
+# Terminal 1 - Mock
+cd d1fitness-api-mock && npm run start:dev
+
+# Terminal 2 - Backend
+cd d1fitness-nf-backend && npm run start:dev
+
+# Log: SalesRepository configurado para usar Mock API
+```
+
+**Modo API Real:**
+```bash
+# Edite d1fitness-nf-backend/.env
+SALES_PROVIDER=api
+
+# Reinicie o backend
+# Log: SalesRepository configurado para usar API D1FITNESS
+```
+
 ## 📋 Visão Geral
 
 Este projeto consiste em um sistema full-stack com:
 
 - **Backend (NestJS)**: API RESTful para gerenciar vendas e envio de notas fiscais
-- **Frontend (React)**: Interface moderna e responsiva para interação com o usuário
-- **Mock API**: API mockada para testes durante desenvolvimento
+- **Frontend (React)**: Interface moderna e responsiva
+- **Mock API**: API mockada para desenvolvimento
+- **Integração D1FITNESS**: Integração transparente com API real
 
 ## 🚀 Tecnologias
 
