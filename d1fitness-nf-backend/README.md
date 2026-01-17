@@ -7,11 +7,30 @@ Backend da aplicação de automação de envio de Notas Fiscais por email, desen
 Este sistema automatiza o processo de envio de Notas Fiscais eletrônicas (NF-e) por email. Ele consome APIs de vendas e notas fiscais, processa arquivos XML, gera PDFs no formato DANFE e envia tudo por email com anexos.
 
 **Funcionalidades principais:**
-- Integração com API de vendas para listar vendas realizadas
+- Integração com API de vendas (mock ou API real D1FITNESS)
 - Busca de notas fiscais por código com validação de XML
 - Geração de DANFE (PDF) a partir do XML da NF-e
 - Envio de email com XML e PDF em anexo
 - Rastreamento de envios com registro em banco de dados
+- Alternância entre mock e API real via configuração
+
+## Integração com API D1FITNESS
+
+O sistema suporta dois modos de operação:
+
+### Modo Mock (padrão)
+Consome API local mockada em `http://localhost:3000`
+
+### Modo API Real
+Consome API D1FITNESS em `https://d1-teste-dev-fullstack.morefocus.com.br`
+
+**Alternar entre os modos:**
+```env
+# No arquivo .env
+SALES_PROVIDER=mock  # ou 'api'
+```
+
+A arquitetura utiliza padrão Repository para abstrair a origem dos dados, permitindo que o código não precise saber se está usando mock ou API real.
 
 ## Tecnologias Utilizadas
 
@@ -121,30 +140,30 @@ Edite o arquivo `.env` com suas credenciais:
 PORT=3001
 
 # Configurações do Banco de Dados PostgreSQL
-DB_HOST=localhost              # ou seu servidor remoto
+DB_HOST=localhost
 DB_PORT=5432
-DB_USER=postgres               # seu usuário
-DB_PASS="sua_senha_aqui"       # sua senha (use aspas se houver caracteres especiais como #)
-DB_NAME=d1fitness_test         # nome do seu banco
-
-# IMPORTANTE:
-# false -> banco local
-# true  -> banco remoto (cloud)
-DB_SSL=false
+DB_USER=postgres
+DB_PASS="sua_senha_aqui"
+DB_NAME=d1fitness_test
+DB_SSL=false  # false para banco local, true para remoto
 
 # Configuração do Resend (Serviço de Email)
-# Obtenha sua chave em: https://resend.com/api-keys
 RESEND_API_KEY=re_sua_chave_api_aqui
 EMAIL_FROM=Seu Nome <seu-email@seudominio.com>
 
-# URLs da API Mock (para desenvolvimento)
+# Provider de vendas: 'mock' ou 'api'
+SALES_PROVIDER=mock
+
+# URL da API real D1FITNESS (usado quando SALES_PROVIDER=api)
+SALES_API_BASE_URL=https://d1-teste-dev-fullstack.morefocus.com.br
+
+# Fallback para mock em caso de erro
+SALES_FALLBACK_TO_MOCK=false
+
+# URLs da API Mock (usadas quando SALES_PROVIDER=mock)
 API_VENDAS_URL=http://localhost:3000/vendas
 API_NOTAS_FISCAIS_URL=http://localhost:3000/notas-fiscais
 ```
-
-> **Nota sobre o Resend:**  
-> Em ambiente de teste com domínio `resend.dev`, você só pode enviar emails para o endereço que criou a conta.  
-> Para enviar para outros destinatários, configure um domínio verificado em [resend.com/domains](https://resend.com/domains).
 
 ## Ordem correta de inicialização (IMPORTANTE)
 
@@ -281,24 +300,40 @@ Você pode testar todos os endpoints diretamente pelo navegador.
 
 ```
 src/
-├── compartilhado/          # Módulos compartilhados
-│   ├── excecoes/           # Tratamento de exceções customizadas
-│   ├── http/               # Utilitários HTTP
-│   └── xml/                # Utilitários para processamento de XML
-├── config/                 # Configurações da aplicação
-│   ├── banco-dados.config.ts
-│   └── email.config.ts
-├── migrations/             # Migrations do banco de dados
-│   └── *-CreateEnvioNotaFiscalTable.ts
-├── modulos/                # Módulos da aplicação
-│   ├── email/              # Serviço de envio de emails
-│   ├── envio-nota-fiscal/  # Lógica de envio de NF
-│   ├── geracao-danfe/      # Geração de PDF (DANFE)
-│   ├── notas-fiscais/      # Integração com API de NF
-│   └── vendas/             # Integração com API de vendas
+├── modulos/
+│   ├── vendas/
+│   │   ├── domain/
+│   │   │   └── interfaces/      # Interfaces do domínio (Sale, Invoice)
+│   │   ├── providers/           # Providers (mock e API real)
+│   │   │   ├── sales-mock.provider.ts
+│   │   │   ├── sales-api.provider.ts
+│   │   │   ├── mappers/         # Mapeadores de dados
+│   │   │   └── types/           # Tipos da API D1FITNESS
+│   │   ├── repositories/        # Repository Pattern
+│   │   │   └── sales.repository.ts
+│   │   ├── vendas.controller.ts
+│   │   ├── vendas.service.ts
+│   │   └── vendas.module.ts
+│   ├── notas-fiscais/           # Busca e validação de NF
+│   ├── email/                   # Serviço de envio de emails
+│   ├── envio-nota-fiscal/       # Lógica de envio de NF
+│   └── geracao-danfe/           # Geração de PDF (DANFE)
+├── migrations/                  # Migrations do banco de dados
 ├── app.module.ts
 └── main.ts
 ```
+
+### Arquitetura da Integração
+
+O sistema utiliza padrão **Repository** com **Strategy Pattern** para alternar entre providers:
+
+```
+Controller → Service → Repository → Provider (Mock ou API) → Dados
+```
+
+- **Repository**: Decide qual provider usar baseado em `SALES_PROVIDER`
+- **Providers**: Implementam interface `ISalesProvider`
+- **Mappers**: Transformam dados da API D1FITNESS para formato do domínio
 
 ## Comandos Úteis
 
