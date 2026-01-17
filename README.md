@@ -28,6 +28,20 @@ SALES_PROVIDER=api
 # Log: SalesRepository configurado para usar API D1FITNESS
 ```
 
+### Fallback Automático
+
+O sistema pode fazer fallback automático para o mock se a API real falhar:
+
+```env
+# No arquivo d1fitness-nf-backend/.env
+SALES_FALLBACK_TO_MOCK=true   # Fallback automático em caso de erro
+SALES_FALLBACK_TO_MOCK=false  # Produção: erros são propagados
+```
+
+**Recomendações:**
+- **Desenvolvimento**: `true` (resiliente a falhas da API)
+- **Produção**: `false` (erros visíveis para correção)
+
 ## 📋 Visão Geral
 
 Este projeto consiste em um sistema full-stack com:
