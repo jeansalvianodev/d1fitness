@@ -2,32 +2,6 @@
 
 Sistema completo para gerenciamento e envio de notas fiscais, desenvolvido como teste técnico para D1FITNESS.
 
-## 🎯 Integração com API Real D1FITNESS
-
-✅ Sistema suporta integração com a API real do D1FITNESS, mantendo o mock funcionando.
-
-### Alternância entre Mock e API Real
-
-**Modo Mock (padrão):**
-```bash
-# Terminal 1 - Mock
-cd d1fitness-api-mock && npm run start:dev
-
-# Terminal 2 - Backend
-cd d1fitness-nf-backend && npm run start:dev
-
-# Log: SalesRepository configurado para usar Mock API
-```
-
-**Modo API Real:**
-```bash
-# Edite d1fitness-nf-backend/.env
-SALES_PROVIDER=api
-
-# Reinicie o backend
-# Log: SalesRepository configurado para usar API D1FITNESS
-```
-
 ### Fallback Automático
 
 O sistema pode fazer fallback automático para o mock se a API real falhar:
@@ -109,7 +83,13 @@ Essa lógica já está tratada no código do backend (`app.module.ts` e `typeorm
 
 ## 🔧 Setup Completo
 
-### 1. API Mock
+## 🎯 Integração com API Real D1FITNESS
+
+✅ Sistema suporta integração com a API real do D1FITNESS, mantendo o mock funcionando.
+
+### Alternância entre Mock e API Real
+
+**Modo Mock (padrão):**
 
 ```bash
 # Navegar para a pasta da API mock
@@ -123,6 +103,15 @@ npm run start:dev
 ```
 
 A API mock estará disponível em `http://localhost:3000` e fornece dados mockados de vendas e notas fiscais.
+
+**Modo API Real:**
+```bash
+# Edite d1fitness-nf-backend/.env
+SALES_PROVIDER=api
+
+# Reinicie o backend
+# Log: SalesRepository configurado para usar API D1FITNESS
+```
 
 ### 2. Backend
 
@@ -142,6 +131,8 @@ npm run migration:run
 
 # Iniciar o servidor
 npm run start:dev
+
+# Log: SalesRepository configurado para usar Mock API
 ```
 
 O backend estará disponível em `http://localhost:3001`
