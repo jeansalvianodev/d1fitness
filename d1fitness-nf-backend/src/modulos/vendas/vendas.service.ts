@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
+import { RepositorioVendas } from './repositories/sales.repository';
 
 @Injectable()
 export class VendasService {
+  constructor(private readonly repositorioVendas: RepositorioVendas) {}
+
   async listar() {
-    const url = process.env.API_VENDAS_URL;
+    return await this.repositorioVendas.obterVendas();
+  }
 
-    if (!url) {
-      throw new Error('API_VENDAS_URL não configurada');
-    }
-
-    const response = await axios.get(url);
-    return response.data;
+  async buscarPorCodigo(codigo: string) {
+    return await this.repositorioVendas.obterVendaPorCodigo(codigo);
   }
 }

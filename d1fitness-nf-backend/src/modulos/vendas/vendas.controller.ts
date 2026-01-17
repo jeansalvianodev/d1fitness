@@ -1,5 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { VendasService } from './vendas.service';
 
 @ApiTags('Vendas')
@@ -31,7 +31,29 @@ export class VendasController {
     status: 500, 
     description: 'Erro ao buscar vendas da API externa' 
   })
-  listar() {
+  async listar() {
     return this.vendasService.listar();
+  }
+
+  @Get(':codigo')
+  @ApiOperation({ 
+    summary: 'Buscar venda por código',
+    description: 'Retorna os dados de uma venda específica'
+  })
+  @ApiParam({ 
+    name: 'codigo', 
+    description: 'Código da venda',
+    example: '1'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Venda encontrada',
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Venda não encontrada' 
+  })
+  buscarPorCodigo(@Param('codigo') codigo: string) {
+    return this.vendasService.buscarPorCodigo(codigo);
   }
 }
